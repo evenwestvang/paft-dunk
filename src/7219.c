@@ -18,7 +18,6 @@ int writeWord(int word) {
   int i;
   for (i = 0; i < 16; i++) {
     if (word & 0b1000000000000000) {
-    //if (word & 0b1) {
       SPI_DTA_PORT |= 1 << SPI_DTA_PIN;
     } else {
       SPI_DTA_PORT &= ~(1 << SPI_DTA_PIN);

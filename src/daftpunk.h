@@ -4,8 +4,8 @@
 
 #include <avr/pgmspace.h>
 
-const uint8_t daftOrder[] = {2,1,3,7,0,6,8,5,4};
-const uint8_t daftWidths[] = {7,6,5,7,2,5,6,6,6}; 
+const uint8_t daftOrder[] = {2,1,3,7,0,6,8,5,4,0,0};
+const uint8_t daftWidths[] = {7,6,5,7,2,5,6,6,6,2,2}; 
 
 // 50 + 18 = 68 bits = 9 bytes
 

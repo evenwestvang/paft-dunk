@@ -13,6 +13,26 @@ uint8_t character;
 uint8_t bitPos;
 uint8_t printSpaces;
 
+uint8_t noise;
+uint8_t a,b,c,x;
+
+init_rng(s1,s2,s3) {
+  //XOR new entropy into key state
+  a ^=s1;
+  b ^=s2;
+  c ^=s3;
+  x++;
+}
+ 
+uint8_t randomize()
+{
+  x++;
+  a = (a^c^x);
+  b = (b+c);  
+  c = (c+(b>>1)^a);
+  return(c);
+}
+
 void initLetters(uint8_t position) {
   character = daftOrder[position];
   bitPos = 7;
@@ -20,30 +40,29 @@ void initLetters(uint8_t position) {
 
 void incLetters() {
   position += 1;
-  if (position > 8) {
+  if (position > 10) {
     position = 0;
     printSpaces = 12;
+    noise = randomize() / 2;
   } else {
-    printSpaces = 3;
+    printSpaces = 2;
   }
 
   if (daftOrder[position] == 0) {
-    printSpaces = 6;
-    position += 1;    
+    printSpaces = 4;
+    position++;    
   }
 
   initLetters(position);
 }
 
 void drawLetters() {
-
   uint8_t i;
   for (i = 0; i < 8; i++) {
-    // Scroll display
+
     display[i] = display[i] << 1;
 
     if (!printSpaces) {
-      // Read letter from program memory
       uint8_t rowData = pgm_read_byte(&(daftLetters[((character - 1) * 8) + i]));
       rowData = rowData >> bitPos;
 
@@ -52,15 +71,31 @@ void drawLetters() {
   }
 
   if (!printSpaces) {
-    bitPos -= 1;
-    if (bitPos == 0) {
+    bitPos--;
+    if (bitPos - (7 - daftWidths[position]) == 0) {
       incLetters();
     }
   } else {
-    printSpaces -= 1;
+    printSpaces--;
   }
 
-  _delay_ms(20);
+  _delay_ms(80);
+}
+
+
+void drawNoise() {
+  int i;
+  for (i = 0; i < 8; i++) {
+    uint8_t rnd = randomize();
+    display[i] = 0;
+    if (rnd > 160) {
+      display[i] = rnd;
+    }
+  }
+  uint8_t wait = randomize();
+  for (i = 0; i < wait; i++) {
+    _delay_us(500);
+  }
 }
 
 int main() { 
@@ -73,10 +108,20 @@ int main() {
 
   initDisplay();
   initLetters(0);
+  init_rng(5, 30, 0xfe);
+  noise = 0x80;
 
   for (;;) {
-    _delay_ms(30);
-    drawLetters();
+    if (!noise) {
+      drawLetters();
+    } else {
+      drawNoise();
+      noise--;
+      if (!noise) {
+        printSpaces = 4;
+        int i;
+      }
+    }
     writeBuffer();
   }
 }
